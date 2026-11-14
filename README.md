@@ -43,8 +43,21 @@ Hansen GFC tiles ──► prepare_hansen.py ──► blocks.npz ──► buil
 
 ## Results (real data, 7 Western Ghats / Malnad districts)
 
-The pipeline measures the risk model on years it never saw during training (2008–2020 train, 2021–2024 test) and compares it with a naive
-"same as the last 3 years" baseline. The exact numbers are printed by `build_hexes.py` and shown in the app under **How this works**.
+**What happened (Hansen GFC v1.12, 2000-2024).** The study area held about 2.03 M ha of forest in 2000 and lost about 56 K ha (2.8%) by 2024.
+Annual loss peaked in 2023. 1,423 of 6,999 hexagons are 99%-confidence hot spots (Getis-Ord Gi*) and hold 58% of all loss.
+
+**Can the risk model predict it?** Trained on 2008-2020 and tested on 2021-2024, years it never saw:
+
+| | Risk model | "Same as last 3 years" baseline |
+|---|---|---|
+| ROC AUC | **0.877** | 0.839 |
+| Average precision | **0.448** (base rate 0.111, about 4x) | - |
+
+Test set: 26,678 hexagon-years (about 2,950 high-loss events). The model is a Random Forest on 7 spatial and temporal features;
+it ranks cells better than simple persistence, but it is a screening tool, not a prediction of exactly where clearing will happen.
+
+**Caveat.** Hansen "loss" is any stand-replacing tree-cover removal. In coffee, eucalyptus and acacia areas it includes plantation harvest and
+replanting, not only deforestation. Read the hot spots as "where canopy is being removed", then check with imagery (Satellite basemap).
 
 ## Run it
 
