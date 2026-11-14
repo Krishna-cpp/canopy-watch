@@ -38,6 +38,7 @@ aside { overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padd
 .swipe-badge-left { left: 10px; } .swipe-badge-right { right: 10px; }
 .map-buttons { position: absolute; z-index: 610; left: 10px; top: 46px; display: flex; flex-direction: column; gap: 4px; }
 .map-buttons button { width: 32px; height: 32px; border: 0; border-radius: 6px; background: #fff; color: var(--ink); font-size: 18px; box-shadow: 0 1px 4px rgba(0,0,0,.35); }
+.map-buttons button.base-btn { width: auto; height: 28px; padding: 0 9px; font-size: 12px; font-weight: 600; color: var(--forest); }
 .attrib { position: absolute; z-index: 610; right: 6px; bottom: 4px; font-size: 10px; background: rgba(255,255,255,.8); padding: 1px 5px; border-radius: 4px; color: #333; pointer-events: none; }
 .legend { position: absolute; z-index: 610; left: 10px; bottom: 22px; background: rgba(255,255,255,.93); border-radius: 8px; padding: 8px 10px; font-size: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.3); min-width: 190px; pointer-events: none; }
 .legend-title { font-weight: 600; margin-bottom: 5px; }
