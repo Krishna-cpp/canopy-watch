@@ -17,7 +17,7 @@ export default function SwipeMap({ D, leftColors, rightColors, selected, onSelec
   const S = useRef({ polys: [[], []], maps: [], tiles: [null, null], cols: [[], []], sel: null, hov: null });
   const [pos, setPos] = useState(0.5);
   const [dragging, setDragging] = useState(false);
-  const [base, setBase] = useState("light");
+  const [base, setBase] = useState("sat");
   const tipRef = useRef(tooltip); tipRef.current = tooltip;
   const selectRef = useRef(onSelect); selectRef.current = onSelect;
 
