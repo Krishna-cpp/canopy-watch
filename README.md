@@ -9,8 +9,7 @@ CanopyWatch is a web dashboard for tracking forest-cover change across Karnataka
 (Kodagu, Chikmagalur, Hassan, Dakshina Kannada, Udupi, Uttara Kannada, Shimoga). It turns 30 m satellite-derived
 forest data into something an officer, NGO or student can read in seconds.
 
-**Live demo:** `<paste your deployed URL here>`
-
+**Live demo:** `https://canopy-watch-three.vercel.app/`
 ## Features (mapped to the brief)
 
 | Brief requirement | What CanopyWatch does |
