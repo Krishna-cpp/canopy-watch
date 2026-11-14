@@ -9,7 +9,8 @@ CanopyWatch is a web dashboard for tracking forest-cover change across Karnataka
 (Kodagu, Chikmagalur, Hassan, Dakshina Kannada, Udupi, Uttara Kannada, Shimoga). It turns 30 m satellite-derived
 forest data into something an officer, NGO or student can read in seconds.
 
-**Live demo:** `https://canopy-watch-three.vercel.app/`
+**Live demo:** https://canopy-watch-three.vercel.app
+
 ## Features (mapped to the brief)
 
 | Brief requirement | What CanopyWatch does |
@@ -40,19 +41,25 @@ Hansen GFC tiles ──► prepare_hansen.py ──► blocks.npz ──► buil
   Metrics are written to `hexes.json` and shown in the app.
 * **No backend**: everything heavy is pre-computed, so the deployed site is a fast static page that cannot fail during a demo.
 
+## Results (real data, 7 Western Ghats / Malnad districts)
+
+* 1,059 H3 hexagons; forest cover in 2000 ≈ 20.4 lakh ha in the study hexagons; ≈ 56,600 ha of tree-cover loss 2001–2024 (−2.8 %).
+* **Risk model**, trained on 2008–2020 and tested on unseen years 2021–2024 (4,068 hexagon-years, ~11 % high-loss events):
+  **ROC-AUC 0.914** vs 0.883 for the naive "same as last 3 years" baseline; average precision 0.555 (about 5× the base rate).
+
 ## Run it
 
-### A. Web app only (works immediately, with DEMO data)
+### A. Web app only
 ```bash
 cd web
 npm install
 npm run dev          # http://localhost:5173
 npm run build        # production build in web/dist
 ```
-The repo ships with a **synthetic demo dataset** so the app runs out of the box. While it is loaded the app shows a red
-**DEMO DATA** banner. Do not present those numbers as real results.
+The repo ships with **real Hansen data** for the seven study districts (`web/public/data/`), so the app runs out of the box.
+(`pipeline/synthetic_blocks.py` can generate a clearly labelled synthetic dataset for testing; the app then shows a red DEMO DATA banner.)
 
-### B. Build the real dataset (Hansen 2000–2024)
+### B. Rebuild the dataset yourself (Hansen 2000–2024)
 ```bash
 python -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
@@ -65,7 +72,6 @@ cd web && npm run build
 `prepare_hansen.py` reads only your study-area window from Google Cloud Storage, so there is no multi-GB download and no
 Earth Engine login. Other options: `--districts "Kodagu,Hassan"`, `--bbox W S E N`, `--canopy 30`, `--local-dir <folder>`
 (if you downloaded the tiles manually from the [Hansen download page](https://storage.googleapis.com/earthenginepartners-hansen/GFC-2024-v1.12/download.html)).
-If the real-data build disables the banner, `hexes.json` has `"synthetic": false`.
 
 ### C. Tests
 ```bash
@@ -93,4 +99,4 @@ tests/      Gi* cross-check
 ## Data & credits
 * Hansen, M. C., et al. (2013), *High-resolution global maps of 21st-century forest cover change*, Science 342. Global Forest Change v1.12 (2000–2024), UMD / Google / USGS / NASA, **CC BY 4.0**.
 * District boundaries: [geoBoundaries](https://www.geoboundaries.org) (gbOpen, ADM2), **CC BY 4.0**.
-* Basemap © OpenStreetMap contributors © CARTO. Built with React, Leaflet, H3, scikit-learn, rasterio.
+* Basemaps: © OpenStreetMap contributors; satellite imagery © Esri, Maxar, Earthstar Geographics. Built with React, Leaflet, H3, scikit-learn, rasterio.
