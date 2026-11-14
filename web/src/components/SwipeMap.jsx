@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 
-const TILES = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+const BASES = {
+  osm: { url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png", attr: "© OpenStreetMap contributors", maxZoom: 19 },
+  sat: { url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", attr: "Imagery © Esri, Maxar, Earthstar Geographics", maxZoom: 18 },
+};
 
 /**
  * Two synchronised Leaflet maps stacked on top of each other. The top map (BEFORE) is clipped with
@@ -9,9 +12,10 @@ const TILES = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
  */
 export default function SwipeMap({ D, leftColors, rightColors, selected, onSelect, focus, tooltip, leftLabel, rightLabel, children }) {
   const wrapEl = useRef(null), topEl = useRef(null), botEl = useRef(null);
-  const S = useRef({ polys: [[], []], maps: [], sel: null });
+  const S = useRef({ polys: [[], []], maps: [], tiles: [null, null], sel: null });
   const [pos, setPos] = useState(0.5);
   const [dragging, setDragging] = useState(false);
+  const [base, setBase] = useState("osm");
   const tipRef = useRef(tooltip); tipRef.current = tooltip;
   const selectRef = useRef(onSelect); selectRef.current = onSelect;
 
@@ -21,7 +25,6 @@ export default function SwipeMap({ D, leftColors, rightColors, selected, onSelec
     const bounds = L.latLngBounds([[s, w], [n, e]]);
     const maps = [topEl.current, botEl.current].map((el) =>
       L.map(el, { preferCanvas: true, zoomControl: false, attributionControl: false, zoomSnap: 0.25, minZoom: 6, maxZoom: 14 }));
-    maps.forEach((m) => L.tileLayer(TILES, { subdomains: "abcd", maxZoom: 18 }).addTo(m));
     maps.forEach((m, mi) => {
       const polys = D.bounds.map((ring, i) => {
         const p = L.polygon(ring, { weight: 0.6, color: "#ffffff", opacity: 0.35, fillOpacity: 0 });
@@ -46,6 +49,15 @@ export default function SwipeMap({ D, leftColors, rightColors, selected, onSelec
     ro.observe(wrapEl.current);
     return () => { ro.disconnect(); maps.forEach((m) => m.remove()); };
   }, [D]);
+
+  // ---- basemap (OpenStreetMap or Esri satellite); tiles sit below the hexagons
+  useEffect(() => {
+    const cfg = BASES[base];
+    S.current.maps.forEach((m, mi) => {
+      if (S.current.tiles[mi]) m.removeLayer(S.current.tiles[mi]);
+      S.current.tiles[mi] = L.tileLayer(cfg.url, { maxZoom: cfg.maxZoom, crossOrigin: true }).addTo(m);
+    });
+  }, [base, D]);
 
   // ---- colours
   useEffect(() => {
@@ -105,8 +117,9 @@ export default function SwipeMap({ D, leftColors, rightColors, selected, onSelec
         <button onClick={() => zoom(1)} aria-label="Zoom in">+</button>
         <button onClick={() => zoom(-1)} aria-label="Zoom out">−</button>
         <button onClick={reset} aria-label="Reset view" title="Reset view">⟲</button>
+        <button className="base-btn" onClick={() => setBase(base === "osm" ? "sat" : "osm")}>{base === "osm" ? "Satellite" : "Map"}</button>
       </div>
-      <div className="attrib">© OpenStreetMap contributors © CARTO</div>
+      <div className="attrib">{BASES[base].attr}</div>
       {children}
     </div>
   );
