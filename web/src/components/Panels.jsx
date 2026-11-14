@@ -1,99 +1,117 @@
+import { useState } from "react";
 import { fmt } from "../lib/stats.js";
 import { RAMPS, HOTSPOT_CLASSES, COLD_SPOT } from "../lib/colors.js";
 
-export function Stat({ label, value, unit, tone }) {
+export function Figure({ label, value, unit, tone }) {
   return (
-    <div className={`stat ${tone || ""}`}>
-      <div className="stat-value">{value}<span className="stat-unit">{unit}</span></div>
-      <div className="stat-label">{label}</div>
+    <div className={`figure ${tone || ""}`}>
+      <div className="figure-value">{value}<span>{unit}</span></div>
+      <div className="figure-label">{label}</div>
     </div>
   );
 }
 
-/** Bar chart of annual loss (ha); bars inside the selected period are highlighted. */
+/** Annual loss. Bars inside the selected period are coloured; hover shows the exact value. */
 export function AnnualChart({ years, values, a, b }) {
-  const W = 320, H = 118, padL = 4, padB = 18, padT = 20;
+  const [hover, setHover] = useState(null);
+  const W = 340, H = 96, padB = 16, padT = 4;
   const max = Math.max(1, ...values);
-  const bw = (W - padL) / values.length;
+  const bw = W / values.length;
+  const k = hover ?? null;
   return (
-    <svg className="chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Forest loss per year">
-      {values.map((v, i) => {
-        const h = ((H - padB - padT) * v) / max;
-        const inside = years[i] > a && years[i] <= b;
-        return (
-          <rect key={years[i]} x={padL + i * bw + 1} y={H - padB - h} width={Math.max(1, bw - 2)} height={h}
-            rx="1.5" className={inside ? "bar on" : "bar"}>
-            <title>{years[i]}: {fmt(v)} ha</title>
-          </rect>
-        );
-      })}
-      {[0, 11, values.length - 1].map((k) => (
-        <text key={k} x={padL + k * bw + bw / 2} y={H - 4} textAnchor={k === 0 ? "start" : k === values.length - 1 ? "end" : "middle"} className="axis">{years[k]}</text>
-      ))}
-      <text x={W - 2} y={9} textAnchor="end" className="axis">max {fmt(max)} ha/yr</text>
-    </svg>
+    <div>
+      <div className="chart-read">
+        {k != null ? <><b>{years[k]}</b> lost {fmt(values[k])} ha</> : <span>Hectares lost each year (hover a bar)</span>}
+      </div>
+      <svg className="chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Forest loss per year" onMouseLeave={() => setHover(null)}>
+        {values.map((v, i) => {
+          const h = Math.max(v > 0 ? 1.5 : 0, ((H - padB - padT) * v) / max);
+          const inside = years[i] > a && years[i] <= b;
+          return (
+            <g key={years[i]} onMouseEnter={() => setHover(i)}>
+              <rect x={i * bw} y={0} width={bw} height={H - padB} fill="transparent" />
+              <rect x={i * bw + 1.2} y={H - padB - h} width={Math.max(1, bw - 2.4)} height={h} rx="1.2" className={`bar ${inside ? "on" : ""} ${hover === i ? "hot" : ""}`} />
+            </g>
+          );
+        })}
+        {[0, 6, 12, 18, values.length - 1].map((t) => (
+          <text key={t} x={t * bw + bw / 2} y={H - 3} textAnchor={t === 0 ? "start" : t === values.length - 1 ? "end" : "middle"} className="axis">{years[t]}</text>
+        ))}
+      </svg>
+    </div>
   );
 }
 
 const LAYERS = [
-  { id: "cover", name: "Forest cover", desc: "Forest remaining in the AFTER year" },
-  { id: "loss", name: "Loss", desc: "Hectares lost between the two years" },
-  { id: "hotspot", name: "Hotspots", desc: "Getis-Ord Gi*: statistically significant loss clusters" },
-  { id: "risk", name: "Risk forecast", desc: "Machine-learning risk of high loss in the next year" },
+  { id: "cover", name: "Forest cover", desc: "Forest still standing in the AFTER year." },
+  { id: "loss", name: "Loss", desc: "Hectares lost between the two years." },
+  { id: "hotspot", name: "Hotspots", desc: "Clusters where loss is higher than chance would explain (Getis-Ord Gi*)." },
+  { id: "risk", name: "Risk forecast", desc: "Modelled chance of a high-loss event in the next year." },
 ];
-export function LayerPicker({ layer, setLayer }) {
+
+export function Legend({ layer, lossMax, riskYear }) {
+  const grad = (stops) => `linear-gradient(90deg, ${stops.join(",")})`;
+  if (layer === "hotspot") {
+    return (
+      <ul className="legend-list">
+        {[...HOTSPOT_CLASSES, COLD_SPOT].map((c) => <li key={c.label}><i style={{ background: c.color }} />{c.label}</li>)}
+      </ul>
+    );
+  }
+  const lo = layer === "cover" ? "0%" : layer === "loss" ? "0 ha" : "Low";
+  const hi = layer === "cover" ? "100% of hexagon" : layer === "loss" ? `${fmt(lossMax)} ha or more` : `High, ${riskYear}`;
+  return (
+    <div className="legend-ramp">
+      <div className="legend-bar" style={{ background: grad(RAMPS[layer]) }} />
+      <div className="legend-scale"><span>{lo}</span><span>{hi}</span></div>
+    </div>
+  );
+}
+
+export function LayerPicker({ layer, setLayer, lossMax, riskYear }) {
+  const cur = LAYERS.find((l) => l.id === layer);
   return (
     <div>
-      <div className="seg" role="tablist">
+      <div className="seg" role="tablist" aria-label="Map layer">
         {LAYERS.map((l) => (
           <button key={l.id} role="tab" aria-selected={layer === l.id} className={layer === l.id ? "on" : ""} onClick={() => setLayer(l.id)}>{l.name}</button>
         ))}
       </div>
-      <p className="hint">{LAYERS.find((l) => l.id === layer).desc}</p>
+      <p className="hint">{cur.desc}</p>
+      <Legend layer={layer} lossMax={lossMax} riskYear={riskYear} />
     </div>
   );
 }
 
-export function Legend({ layer, lossMax, riskYear }) {
-  const grad = (stops) => `linear-gradient(90deg, ${stops.join(",")})`;
-  return (
-    <div className="legend">
-      {layer === "hotspot" ? (
-        <>
-          {[...HOTSPOT_CLASSES, COLD_SPOT].map((c) => (
-            <div key={c.label} className="legend-row"><i style={{ background: c.color }} />{c.label}</div>
-          ))}
-        </>
-      ) : (
-        <>
-          <div className="legend-title">{layer === "cover" ? "Forest cover of each hexagon" : layer === "loss" ? "Forest lost (ha per hexagon)" : `Risk of high loss in ${riskYear}`}</div>
-          <div className="legend-bar" style={{ background: grad(RAMPS[layer]) }} />
-          <div className="legend-scale">
-            <span>{layer === "cover" ? "0%" : layer === "loss" ? "0" : "low"}</span>
-            <span>{layer === "cover" ? "100%" : layer === "loss" ? `${fmt(lossMax)}+` : "high"}</span>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
+/** Floating timeline: one track, two handles (BEFORE and AFTER year). */
 export function TimeControls({ years, a, b, setA, setB, playing, setPlaying }) {
-  const first = years[0] - 1, last = years[years.length - 1];
+  const min = years[0] - 1, max = years[years.length - 1];
+  const pct = (v) => ((v - min) / (max - min)) * 100;
   return (
-    <div className="time">
-      <div className="time-top">
-        <button className="play" onClick={() => setPlaying(!playing)} aria-label={playing ? "Pause" : "Play timeline"}>{playing ? "❚❚" : "▶"}</button>
-        <div className="time-years"><b>{a}</b> → <b>{b}</b> <span>({b - a} years)</span></div>
-        <div className="presets">
-          <button onClick={() => { setA(first); setB(last); }}>All years</button>
-          <button onClick={() => { setA(last - 10); setB(last); }}>Last 10</button>
-          <button onClick={() => { setA(last - 5); setB(last); }}>Last 5</button>
+    <div className="timebar">
+      <button className="play" onClick={() => setPlaying(!playing)} aria-label={playing ? "Pause" : "Play through the years"}>
+        {playing
+          ? <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="4" width="5" height="16" rx="1" /><rect x="14" y="4" width="5" height="16" rx="1" /></svg>
+          : <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z" /></svg>}
+      </button>
+      <div className="time-main">
+        <div className="time-readout">
+          <span className="yr">{a}</span><span className="to">to</span><span className="yr">{b}</span><span className="span">{b - a} years</span>
         </div>
+        <div className="dual">
+          <div className="track" />
+          <div className="fill" style={{ left: `${pct(a)}%`, width: `${pct(b) - pct(a)}%` }} />
+          <input className="ia" type="range" min={min} max={max} value={a} aria-label="Before year"
+            onChange={(e) => setA(Math.min(+e.target.value, b - 1))} />
+          <input className="ib" type="range" min={min} max={max} value={b} aria-label="After year"
+            onChange={(e) => setB(Math.max(+e.target.value, a + 1))} />
+        </div>
+        <div className="ticks">{[min, min + 6, min + 12, min + 18, max].map((y) => <span key={y}>{y}</span>)}</div>
       </div>
-      <div className="sliders">
-        <label>BEFORE<input type="range" min={first} max={last - 1} value={a} onChange={(e) => { const v = +e.target.value; setA(v); if (v >= b) setB(v + 1); }} /></label>
-        <label>AFTER<input type="range" min={first + 1} max={last} value={b} onChange={(e) => { const v = +e.target.value; setB(v); if (v <= a) setA(v - 1); }} /></label>
+      <div className="presets">
+        <button onClick={() => { setA(min); setB(max); }}>All</button>
+        <button onClick={() => { setA(max - 10); setB(max); }}>10 yrs</button>
+        <button onClick={() => { setA(max - 5); setB(max); }}>5 yrs</button>
       </div>
     </div>
   );
@@ -102,12 +120,12 @@ export function TimeControls({ years, a, b, setA, setB, playing, setPlaying }) {
 export function DistrictTable({ rows, selected, onPick }) {
   const max = Math.max(1, ...rows.map((r) => r.lost));
   return (
-    <div className="table">
+    <div className="rows">
       {rows.map((r) => (
         <button key={r.i} className={`row ${selected === r.i ? "on" : ""}`} onClick={() => onPick(r.i)}>
           <span className="row-name">{r.name}</span>
           <span className="row-bar"><i style={{ width: `${(100 * r.lost) / max}%` }} /></span>
-          <span className="row-num">{fmt(r.lost)} ha <em>{fmt(r.pct, 1)}%</em></span>
+          <span className="row-num">{fmt(r.lost)} ha<small>{fmt(r.pct, 1)}% of forest</small></span>
         </button>
       ))}
     </div>
@@ -115,37 +133,43 @@ export function DistrictTable({ rows, selected, onPick }) {
 }
 
 export function TopCells({ cells, onPick, selected }) {
-  if (!cells.length) return <p className="hint">No statistically significant hotspots in this period and area.</p>;
+  if (!cells.length) return <p className="hint">No statistically significant hotspots for this period and area. Try a longer period.</p>;
+  const max = Math.max(1, ...cells.map((c) => c.loss));
   return (
-    <ol className="cells">
+    <div className="rows">
       {cells.map((c, k) => (
-        <li key={c.i}>
-          <button className={selected === c.i ? "on" : ""} onClick={() => onPick(c.i)}>
-            <span className="rank">{k + 1}</span>
-            <span className="cell-name">{c.district}<small>{c.lat.toFixed(2)}°N, {c.lng.toFixed(2)}°E</small></span>
-            <span className="cell-num">{fmt(c.loss)} ha<small>z = {c.z.toFixed(1)}</small></span>
-          </button>
-        </li>
+        <button key={c.i} className={`row ${selected === c.i ? "on" : ""}`} onClick={() => onPick(c.i)}>
+          <span className="rank">{k + 1}</span>
+          <span className="row-name wide">{c.district}<small>{c.lat.toFixed(2)}°N, {c.lng.toFixed(2)}°E</small></span>
+          <span className="row-bar"><i style={{ width: `${(100 * c.loss) / max}%` }} /></span>
+          <span className="row-num">{fmt(c.loss)} ha<small>z = {c.z.toFixed(1)}</small></span>
+        </button>
       ))}
-    </ol>
+    </div>
   );
 }
 
 export function CellCard({ info, onClose }) {
-  if (!info) return <p className="hint">Click any hexagon on the map to see why it is flagged.</p>;
+  if (!info) return <p className="hint">Click a hexagon on the map to see how much forest it holds, how much it lost, and why it is flagged.</p>;
   return (
-    <div className="card">
-      <div className="card-head">
-        <div><b>{info.district}</b><small>{info.lat.toFixed(3)}°N, {info.lng.toFixed(3)}°E · hexagon {info.id}</small></div>
-        <button onClick={onClose} aria-label="Clear selection">✕</button>
+    <div className="cell">
+      <div className="cell-head">
+        <div><b>{info.district}</b><small>{info.lat.toFixed(3)}°N, {info.lng.toFixed(3)}°E</small></div>
+        <button onClick={onClose} aria-label="Clear selection">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><path d="M5 5l14 14M19 5L5 19" /></svg>
+        </button>
       </div>
-      <div className="kv">
-        <span>Forest in 2000</span><b>{fmt(info.f2000)} ha</b>
-        <span>Forest in {info.a}</span><b>{fmt(info.fA)} ha</b>
-        <span>Forest in {info.b}</span><b>{fmt(info.fB)} ha</b>
-        <span>Lost {info.a}→{info.b}</span><b>{fmt(info.loss)} ha ({fmt(info.lossPct, 1)}%)</b>
-        <span>Hotspot (Gi*)</span><b>{info.hotspot}</b>
-        <span>Risk in {info.riskYear}</span><b>{fmt(info.risk * 100)}% · higher than {fmt(info.riskRank * 100)}% of hexagons</b>
+      <dl className="kv">
+        {info.a !== 2000 && <><dt>Forest in 2000</dt><dd>{fmt(info.f2000)} ha</dd></>}
+        <dt>Forest in {info.a}</dt><dd>{fmt(info.fA)} ha</dd>
+        <dt>Forest in {info.b}</dt><dd>{fmt(info.fB)} ha</dd>
+        <dt>Lost in {info.a} to {info.b}</dt><dd>{fmt(info.loss)} ha ({fmt(info.lossPct, 1)}%)</dd>
+        <dt>Hotspot test</dt><dd>{info.hotspot}</dd>
+      </dl>
+      <div className="meter">
+        <div className="meter-top"><span>Risk in {info.riskYear}</span><b>{fmt(info.risk * 100)}%</b></div>
+        <div className="meter-bar"><i style={{ width: `${Math.max(2, info.risk * 100)}%` }} /></div>
+        <div className="meter-note">Higher than {fmt(info.riskRank * 100)}% of hexagons in the study area.</div>
       </div>
       <ul className="why">{info.why.map((w, k) => <li key={k}>{w}</li>)}</ul>
     </div>

@@ -10,17 +10,17 @@ export function ramp(stops, t) {
 }
 
 export const RAMPS = {
-  cover: ["#eef3e4", "#c4dd8c", "#6fb454", "#2f8f4e", "#0f4d2a"],
-  loss: ["#fde9b0", "#f6a43c", "#e8590c", "#b01e1e", "#5c0a0a"],
-  risk: ["#fff3c4", "#f9c74f", "#f3722c", "#c1121f", "#5c0a0a"],
+  cover: ["#e3efc6", "#a9d184", "#58a863", "#1f7a45", "#0b4a2a"],
+  loss: ["#fbe3a6", "#f2a541", "#dd5a28", "#a8281c", "#4d0f0f"],
+  risk: ["#fbeab0", "#f0b34a", "#e0662f", "#b3261e", "#4d0f0f"],
 };
 
 export const HOTSPOT_CLASSES = [
-  { min: 2.58, color: "#b01e1e", label: "Hot spot, 99% confidence" },
-  { min: 1.96, color: "#e8590c", label: "Hot spot, 95% confidence" },
-  { min: 1.65, color: "#f6a43c", label: "Hot spot, 90% confidence" },
+  { min: 2.58, color: "#a8281c", label: "Hot spot, 99% confidence" },
+  { min: 1.96, color: "#dd5a28", label: "Hot spot, 95% confidence" },
+  { min: 1.65, color: "#f2a541", label: "Hot spot, 90% confidence" },
 ];
-export const COLD_SPOT = { max: -1.96, color: "#3b7a8c", label: "Cold spot (less loss than expected)" };
+export const COLD_SPOT = { max: -1.96, color: "#2a7f8e", label: "Cold spot, less loss than expected" };
 
 export function hotspotColor(z) {
   for (const c of HOTSPOT_CLASSES) if (z >= c.min) return c.color;

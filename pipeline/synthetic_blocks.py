@@ -38,8 +38,8 @@ def main():
     shp = LON.shape
     # forest: dense along a Ghats ridge, patchy inland
     ridge = 75.2 + 0.15 * (LAT - 12.0)
-    base = 0.75 * np.exp(-((LON - ridge) / 0.45) ** 2) + 0.12 * smooth_noise(rng, shp, 25) + 0.25
-    frac = np.clip(base + 0.1 * smooth_noise(rng, shp, 8), 0, 0.97)
+    base = 0.75 * np.exp(-((LON - ridge) / 0.45) ** 2) + 0.12 * smooth_noise(rng, shp, 50) + 0.25
+    frac = np.clip(base + 0.1 * smooth_noise(rng, shp, 16), 0, 0.97)
     frac[frac < 0.25] = 0
     area = np.vectorize(pixel_area_ha)(LAT) * (round(BLOCK_DEG / 0.00025)) ** 2
     forest = frac * area
@@ -49,7 +49,7 @@ def main():
     centres = np.c_[LAT.ravel()[ci], LON.ravel()[ci]]
     start = rng.integers(0, 12, nh); radius = rng.uniform(0.12, 0.3, nh); peak = rng.uniform(0.012, 0.035, nh)
     loss = np.zeros(shp + (N_YEARS,))
-    background = 0.0006 * (1 + 0.5 * smooth_noise(rng, shp, 15).clip(-1, 2))
+    background = 0.0006 * (1 + 0.5 * smooth_noise(rng, shp, 30).clip(-1, 2))
     for t in range(N_YEARS):
         rate = background * (1 + 0.04 * t)
         for k in range(nh):

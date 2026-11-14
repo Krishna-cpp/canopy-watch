@@ -17,7 +17,7 @@ DEFAULT_DISTRICTS = [
 
 N_YEARS = 24            # Hansen 2024 v1.12: loss years 2001..2024
 FIRST_YEAR = 2001
-BLOCK_DEG = 0.01        # intermediate grid: 0.01 deg (~1.1 km)
+BLOCK_DEG = 0.005       # intermediate grid: 0.005 deg (~550 m)
 PIXEL_DEG = 0.00025     # Hansen pixel size (~30 m)
 
 

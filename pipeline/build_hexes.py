@@ -5,7 +5,7 @@ Step 2: blocks.npz  ->  H3 hex grid + district assignment + forest-loss RISK MOD
     python pipeline/build_hexes.py
 
 What it does
-  1. Aggregates the ~1 km blocks into H3 resolution-6 hexagons (~36 km2 each).
+  1. Aggregates the ~1 km blocks into H3 resolution-7 hexagons (~5 km2 each).
   2. Assigns each hexagon to a Karnataka district (point-in-polygon, geoBoundaries ADM2).
   3. Trains a Random Forest that predicts whether a hexagon suffers a high-loss event in year T from
      information available BEFORE year T (past loss, neighbour loss, forest left ...).
@@ -31,9 +31,10 @@ from sklearn.metrics import average_precision_score, roc_auc_score
 
 from common import FIRST_YEAR, N_YEARS, load_districts
 
-H3_RES = 6
-MIN_FOREST_HA = 20          # drop hexes with almost no forest in 2000
-MIN_REMAINING_HA = 50       # only model hexes that still have >=50 ha forest
+H3_RES = 7                  # ~5 km2 hexagons (~520 ha)
+GI_RING = 2                 # Gi* neighbourhood: hexagon + 2 rings (19 cells)
+MIN_FOREST_HA = 5           # drop hexes with almost no forest in 2000
+MIN_REMAINING_HA = 15       # only model hexes that still have >=15 ha forest
 FEATURES = ["forest_frac_2000", "remaining_frac", "cum_loss_frac", "last3_loss_frac",
             "prev1_loss_frac", "nbr_last3_density", "nbr_cum_loss_frac"]
 
@@ -129,7 +130,7 @@ def main():
     root = Path(__file__).resolve().parent
     ap.add_argument("--blocks", default=str(root / "out" / "blocks.npz"))
     ap.add_argument("--out", default=str(root.parent / "web" / "public" / "data"))
-    ap.add_argument("--event-ha", type=float, default=10.0, help="hectares lost in one year that count as a high-loss event")
+    ap.add_argument("--event-ha", type=float, default=1.5, help="hectares lost in one year that count as a high-loss event")
     a = ap.parse_args()
     t0 = time.time()
     z = np.load(a.blocks, allow_pickle=False)
@@ -149,17 +150,17 @@ def main():
     meta = {
         "name": "CanopyWatch", "source": str(z["source"]), "synthetic": synthetic,
         "canopy_threshold_pct": int(z["canopy"]), "h3_resolution": H3_RES,
-        "cell_area_ha": round(float(area.mean()), 1), "years": list(range(FIRST_YEAR, FIRST_YEAR + N_YEARS)),
+        "cell_area_ha": round(float(area.mean()), 1), "gi_ring": GI_RING, "years": list(range(FIRST_YEAR, FIRST_YEAR + N_YEARS)),
         "bbox": [float(v) for v in z["bbox"]], "model": info, "risk_year": FIRST_YEAR + N_YEARS,
         "generated": time.strftime("%Y-%m-%d"), "n_cells": int(len(ids)),
         "feature_names": FEATURES,
-        "attribution": "Hansen/UMD/Google/USGS/NASA (CC BY 4.0); district boundaries: geoBoundaries (CC BY 4.0); basemap: OpenStreetMap, CARTO",
+        "attribution": "Hansen/UMD/Google/USGS/NASA (CC BY 4.0); district boundaries: geoBoundaries (CC BY 4.0); basemap: OpenStreetMap, Esri",
     }
     data = {
         "meta": meta, "districts": dnames, "ids": [str(c) for c in ids],
         "lat": [round(float(v), 4) for v in lat], "lng": [round(float(v), 4) for v in lon],
         "forest": [round(float(v), 1) for v in F], "district": [int(v) for v in dist],
-        "loss": [[round(float(v), 1) for v in row] for row in L],
+        "loss": [[0 if v < 0.05 else round(float(v), 1) for v in row] for row in L],
         "risk": [round(float(v), 3) for v in risk],
         "feat": [[round(float(v), 4) for v in (Xn[i, 2], Xn[i, 3], Xn[i, 5])] for i in range(len(ids))],
     }

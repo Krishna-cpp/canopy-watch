@@ -15,15 +15,18 @@ export async function loadData() {
   const Y = d.meta.years.length;
   const stride = Y + 1;
   const index = new Map(d.ids.map((id, i) => [id, i]));
+  const ring = d.meta.gi_ring || 1;
+  const within = (id, k) => gridDisk(id, k).map((c) => index.get(c)).filter((j) => j !== undefined);
   const bounds = d.ids.map((id) => cellToBoundary(id)); // [[lat,lng], ...]
-  const nbrs = d.ids.map((id) => gridDisk(id, 1).map((c) => index.get(c)).filter((j) => j !== undefined));
+  const nbrs = d.ids.map((id) => within(id, 1));        // ring 1, includes self (cell details)
+  const nbrsGi = ring === 1 ? nbrs : d.ids.map((id) => within(id, ring)); // Gi* neighbourhood, includes self
   // cum[i*stride + k] = hectares lost between 2001 and (2000 + k), inclusive
   const cum = new Float32Array(n * stride);
   for (let i = 0; i < n; i++) {
     let s = 0;
     for (let k = 0; k < Y; k++) { s += d.loss[i][k]; cum[i * stride + k + 1] = s; }
   }
-  return { ...d, n, Y, stride, bounds, nbrs, cum, districtsGeo };
+  return { ...d, n, Y, stride, bounds, nbrs, nbrsGi, cum, districtsGeo };
 }
 
 /** Forest area (ha) of cell i at the end of `year` (2000..2024). */

@@ -31,11 +31,11 @@ Hansen GFC tiles ──► prepare_hansen.py ──► blocks.npz ──► buil
 ```
 
 * **Forest** = tree canopy cover in 2000 ≥ 30 %. **Loss** = Hansen's stand-replacement disturbance, by year (2001–2024), counted on forest pixels.
-* **Hex grid**: H3 resolution 6 (~36 km² per cell), assigned to districts using geoBoundaries ADM2 polygons.
-* **Hotspots**: Getis-Ord Gi\* (Ord & Getis 1995) with binary first-ring neighbour weights. `z ≥ 1.96` ≈ 95 % confidence.
+* **Hex grid**: H3 resolution 7 (~5 km² per cell), assigned to districts using geoBoundaries ADM2 polygons.
+* **Hotspots**: Getis-Ord Gi\* (Ord & Getis 1995) with binary contiguity weights over each hexagon and its two rings of neighbours (19 cells). `z ≥ 1.96` ≈ 95 % confidence.
   The reference implementation is `pipeline/gi_star.py`; the browser re-computes it for whatever period you select
   (`web/src/lib/stats.js`). `tests/check_gi.py` verifies the two agree.
-* **Risk model**: `RandomForestClassifier` predicting "≥ 10 ha lost in this hexagon next year" from information available
+* **Risk model**: `RandomForestClassifier` predicting "≥ 1.5 ha lost in this hexagon next year" from information available
   *before* that year (forest left, cumulative loss, last-3-year loss, last-year loss, neighbours' recent and cumulative loss).
   Trained on target years 2008–2020, **tested on unseen 2021–2024**, compared with a naive "same as the last 3 years" baseline. Scores for 2025 use data through 2024.
   Metrics are written to `hexes.json` and shown in the app.
@@ -43,9 +43,8 @@ Hansen GFC tiles ──► prepare_hansen.py ──► blocks.npz ──► buil
 
 ## Results (real data, 7 Western Ghats / Malnad districts)
 
-* 1,059 H3 hexagons; forest cover in 2000 ≈ 20.4 lakh ha in the study hexagons; ≈ 56,600 ha of tree-cover loss 2001–2024 (−2.8 %).
-* **Risk model**, trained on 2008–2020 and tested on unseen years 2021–2024 (4,068 hexagon-years, ~11 % high-loss events):
-  **ROC-AUC 0.914** vs 0.883 for the naive "same as last 3 years" baseline; average precision 0.555 (about 5× the base rate).
+The pipeline measures the risk model on years it never saw during training (2008–2020 train, 2021–2024 test) and compares it with a naive
+"same as the last 3 years" baseline. The exact numbers are printed by `build_hexes.py` and shown in the app under **How this works**.
 
 ## Run it
 
@@ -93,7 +92,7 @@ tests/      Gi* cross-check
 
 ## Limitations (honest notes)
 * Hansen "loss" is *stand-replacement* tree-cover loss. It includes plantation harvest and fire, not only deforestation, and it does not capture gradual degradation. Forest gain is not tracked, so "change in forest" reflects loss only.
-* 30 m Landsat-based data; results aggregate to ~36 km² hexagons for readability. Treat hotspots as *where to look*, not legal evidence.
+* 30 m Landsat-based data; results aggregate to ~5 km² hexagons for readability. Treat hotspots as *where to look*, not legal evidence.
 * The risk model is a statistical indicator trained on past loss, not a prediction of any specific event. Its accuracy depends on the data and is reported in the app.
 
 ## Data & credits

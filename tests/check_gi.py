@@ -9,7 +9,8 @@ from gi_star import gi_star
 
 d = json.loads((ROOT / "web/public/data/hexes.json").read_text())
 ids = d["ids"]; idx = {c: i for i, c in enumerate(ids)}
-nbrs = [np.array([idx[c] for c in h3.grid_disk(i, 1) if c in idx]) for i in ids]
+ring = d["meta"].get("gi_ring", 1)
+nbrs = [np.array([idx[c] for c in h3.grid_disk(i, ring) if c in idx]) for i in ids]
 L = np.array(d["loss"])
 cases = {"all": L.sum(1), "last10": L[:, -10:].sum(1), "2005_2012": L[:, 4:12].sum(1)}
 payload = {"nbrs": [n.tolist() for n in nbrs], "cases": {k: v.tolist() for k, v in cases.items()},

@@ -26,4 +26,11 @@ export function percentRank(sortedAsc, v) {
   return sortedAsc.length ? lo / sortedAsc.length : 0;
 }
 
-export const fmt = (v, d = 0) => Number(v).toLocaleString("en-IN", { maximumFractionDigits: d, minimumFractionDigits: d });
+export const fmt = (v, d = 0) => Number(v).toLocaleString("en-US", { maximumFractionDigits: d, minimumFractionDigits: d });
+export function compact(v) {
+  const trim = (s) => s.replace(/\.0+$/, "").replace(/(\.\d*[1-9])0+$/, "$1");
+  if (v >= 1e6) return trim((v / 1e6).toFixed(2)) + "M";
+  if (v >= 1e5) return Math.round(v / 1e3) + "K";
+  if (v >= 1e3) return trim((v / 1e3).toFixed(1)) + "K";
+  return String(Math.round(v));
+}

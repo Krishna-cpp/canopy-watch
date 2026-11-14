@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Step 1 (real data): read Hansen Global Forest Change tiles and aggregate them to a
-0.01-degree (~1.1 km) block grid.
+0.005-degree (~550 m) block grid.
 
 Reads ONLY the window covering your study area straight from Google Cloud Storage
 (HTTP range requests), so there is no multi-GB download and no Earth Engine login.
@@ -33,8 +33,8 @@ from common import (BLOCK_DEG, DEFAULT_DISTRICTS, FIRST_YEAR, N_YEARS, PIXEL_DEG
                     load_districts, pixel_area_ha, snapped_bbox)
 
 URL = "https://storage.googleapis.com/earthenginepartners-hansen/GFC-2024-v1.12/Hansen_GFC-2024-v1.12_{layer}_{tile}.tif"
-BLOCK_PX = int(round(BLOCK_DEG / PIXEL_DEG))   # 40 pixels per block side
-CHUNK_BLOCK_ROWS = 25                          # 25 block rows (=1000 pixel rows) per read
+BLOCK_PX = int(round(BLOCK_DEG / PIXEL_DEG))   # 20 pixels per block side
+CHUNK_BLOCK_ROWS = 50                          # 50 block rows (=1000 pixel rows) per read
 
 
 def tile_name(lat_top, lon_left):
