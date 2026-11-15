@@ -20,6 +20,7 @@ export default function App() {
   const [focus, setFocus] = useState(null);
   const [playing, setPlaying] = useState(false);
   const [tab, setTab] = useState("cells");
+  const [tour, setTour] = useState(null);
 
   useEffect(() => { loadData().then(setD).catch((e) => setError(e.message)); }, []);
 
@@ -118,6 +119,27 @@ export default function App() {
     const el = document.createElement("a"); el.href = URL.createObjectURL(blob); el.download = `canopywatch_${a}_${b}.csv`; el.click();
   };
 
+  const TOUR = [
+    { title: "See it", text: "Left is the forest in 2000. Right shows the same forest as the years pass. Drag the divider to compare." },
+    { title: "Pinpoint it", text: "Getis-Ord Gi* tests which loss clusters are statistically significant. Red cells are 99% hot spots; they hold most of the loss." },
+    { title: "Explain one cell", text: "Every hexagon is about 520 ha. Click one to see its forest, its loss, and why it was flagged." },
+    { title: "Predict it", text: "A Random Forest scores each cell for next year. Tested on years it never saw, it beats the simple baseline." },
+  ];
+  const goTour = (k) => {
+    if (k < 0 || k >= TOUR.length) { setTour(null); setPlaying(false); return; }
+    setTour(k); setPlaying(false); setDistrict(-1); setSelected(null); setA(BASE_YEAR);
+    const [w, s0, e, n] = D.meta.bbox; setFocus({ bounds: [[s0, w], [n, e]], n: Math.random() });
+    if (k === 0) { setLayer("cover"); setB(BASE_YEAR + 1); setTimeout(() => setPlaying(true), 50); }
+    else if (k === 1) { setLayer("hotspot"); setB(2024); }
+    else if (k === 2) { setLayer("hotspot"); setB(2024); const t = calc.topCells[0]; if (t) setTimeout(() => { pickCell(t.i); setTimeout(() => document.getElementById("selected-cell")?.scrollIntoView({ behavior: "smooth", block: "center" }), 150); }, 50); }
+    else { setLayer("risk"); setB(2024); }
+  };
+  useEffect(() => {
+    if (tour == null) return;
+    const h = (e) => { if (e.key === "Escape") goTour(-1); else if (e.key === "ArrowRight") goTour(tour + 1); else if (e.key === "ArrowLeft" && tour > 0) goTour(tour - 1); };
+    window.addEventListener("keydown", h); return () => window.removeEventListener("keydown", h);
+  }); // eslint-disable-line
+
   if (error) return <div className="boot err"><h2>CanopyWatch could not load its data</h2><p>{error}</p></div>;
   if (!D || !calc) return <div className="boot"><div className="spinner" />Loading forest data</div>;
 
@@ -133,6 +155,21 @@ export default function App() {
           leftLabel={<>Before<b>{a}</b></>} rightLabel={<>After<b>{b}</b><em>{LAYER_NAME[layer]}</em></>}>
           <TimeControls years={m.years} a={a} b={b} setA={setA} setB={setB} playing={playing} setPlaying={setPlaying} />
         </SwipeMap>
+        {tour == null ? (
+          <button className="tour-start" onClick={() => goTour(0)}>Take the 1-minute tour</button>
+        ) : (
+          <div className="tour-card" role="dialog" aria-label="Guided tour">
+            <div className="tour-step">Step {tour + 1} of {TOUR.length}</div>
+            <h3>{TOUR[tour].title}</h3>
+            <p>{TOUR[tour].text}</p>
+            <div className="tour-actions">
+              <button className="btn ghost" onClick={() => goTour(-1)}>Exit</button>
+              <span />
+              {tour > 0 && <button className="btn ghost" onClick={() => goTour(tour - 1)}>Back</button>}
+              <button className="btn" onClick={() => goTour(tour + 1)}>{tour === TOUR.length - 1 ? "Finish" : "Next"}</button>
+            </div>
+          </div>
+        )}
       </section>
 
       <aside className="side">
@@ -185,7 +222,7 @@ export default function App() {
           {tab === "cells" ? <TopCells cells={calc.topCells} onPick={pickCell} selected={selected} /> : <DistrictTable rows={calc.dRows} selected={district} onPick={pickDistrict} />}
         </section>
 
-        <section className="block">
+        <section className="block" id="selected-cell">
           <h2>Selected hexagon</h2>
           <CellCard info={cellInfo} onClose={() => setSelected(null)} />
         </section>
