@@ -172,3 +172,18 @@ h2 { font-size: 14px; font-weight: 650; margin-bottom: 10px; }
   .swipe-tag em { display: none; }
   .basemaps { top: auto; bottom: 110px; right: 14px; }
 }
+
+/* guided tour */
+.stage { position: relative; }
+.tour-start { position: absolute; z-index: 1200; left: 50%; top: 14px; transform: translateX(-50%); background: var(--canopy-deep); color: #fff; border: 0; border-radius: 999px; padding: 10px 18px; font: 600 13px var(--sans, inherit); cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,.28); }
+.tour-start:hover { background: var(--canopy); }
+.tour-start:focus-visible, .tour-card button:focus-visible { outline: 3px solid #e3efc6; outline-offset: 2px; }
+.tour-card { position: absolute; z-index: 1200; left: 50%; top: 14px; transform: translateX(-50%); width: min(400px, calc(100% - 28px)); background: #fff; color: var(--ink); border-radius: 14px; padding: 16px 18px 14px; box-shadow: 0 8px 30px rgba(0,0,0,.35); }
+.tour-card h3 { font-family: var(--serif); font-size: 22px; font-weight: 600; margin: 2px 0 6px; }
+.tour-card p { font-size: 14px; line-height: 1.45; margin: 0 0 12px; }
+.tour-step { font-size: 12px; color: var(--muted); }
+.tour-actions { display: flex; gap: 8px; align-items: center; }
+.tour-actions span { flex: 1; }
+.tour-card .btn.ghost { background: transparent; color: var(--ink); border: 1px solid #c9d1c8; }
+@media (max-width: 1000px) { .tour-start, .tour-card { top: 64px; } }
+.tour-actions .btn { width: auto; margin-top: 0; padding: 9px 16px; }
