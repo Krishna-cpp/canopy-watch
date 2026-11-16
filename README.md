@@ -75,7 +75,7 @@ Test set: 59,090 hexagon-years (about 9,600 high-loss events). The model is a Ra
 it ranks cells better than simple persistence, but it is a screening tool, not a prediction of exactly where clearing will happen.
 
 **Caveat.** Hansen "loss" is any stand-replacing tree-cover removal, and "forest" here means tree canopy of at least 30%. That includes plantation and
-tree-crop harvest and replanting (coffee, rubber, eucalyptus, arecanut) and shifting cultivation (jhum) in the North-East, not only deforestation.
+tree-crop harvest and replanting (coffee, rubber, eucalyptus, arecanut) and jhum in the North-East, not only deforestation. Jhum is shifting cultivation: farmers clear and burn a forest patch, grow crops for a year or two, then let it regrow and move to another patch. The satellite sees each clearing as forest loss, so a North-East hot spot is not always permanent deforestation.
 Read hot spots as "canopy removed", and check them with imagery (Satellite basemap) or a plantation / land-cover mask (planned).
 
 ## Run it
