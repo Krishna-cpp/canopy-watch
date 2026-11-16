@@ -6,7 +6,7 @@ Step 2: blocks.npz  ->  H3 hex grid + district assignment + forest-loss RISK MOD
 
 What it does
   1. Aggregates the ~1 km blocks into H3 resolution-7 hexagons (~5 km2 each).
-  2. Assigns each hexagon to a Karnataka district (point-in-polygon, geoBoundaries ADM2).
+  2. Assigns each hexagon to a Karnataka or Kerala district (point-in-polygon, geoBoundaries ADM2).
   3. Trains a Random Forest that predicts whether a hexagon suffers a high-loss event in year T from
      information available BEFORE year T (past loss, neighbour loss, forest left ...).
        - trained on 2008-2020, tested on the unseen years 2021-2024 (temporal hold-out)

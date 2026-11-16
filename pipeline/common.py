@@ -7,14 +7,18 @@ from shapely.geometry import shape
 from shapely.ops import unary_union
 
 HERE = Path(__file__).resolve().parent
-DISTRICTS_FILE = HERE / "data" / "karnataka_districts.geojson"
+DISTRICTS_FILE = HERE / "data" / "study_districts.geojson"   # Karnataka (30) + Kerala (13) districts, geoBoundaries ADM2
 
-# Forested districts of Karnataka (the default study region): the Western Ghats / Malnad
-# districts plus Chamarajanagar, Mysore, Belgaum and Dharwad.
+# Forested districts of Karnataka and Kerala (the default study region): the Western Ghats / Malnad
+# districts of Karnataka plus four other Karnataka districts, and the forested districts of Kerala.
 DEFAULT_DISTRICTS = [
+    # Karnataka
     "Kodagu", "Chikmagalur", "Hassan", "Dakshina Kannada",
     "Udupi", "Uttara Kannada", "Shimoga",
     "Chamarajanagar", "Mysore", "Belgaum", "Dharwad",
+    # Kerala
+    "Kasaragod", "Kannur", "Wayanad", "Kozhikode", "Malappuram", "Palakkad", "Thrissur",
+    "Ernakulam", "Idukki", "Kottayam", "Pathanamthitta", "Kollam", "Thiruvananthapuram",
 ]
 
 N_YEARS = 24            # Hansen 2024 v1.12: loss years 2001..2024

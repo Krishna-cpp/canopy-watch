@@ -175,7 +175,7 @@ export default function App() {
       <aside className="side">
         <div className="brand">
           <svg width="34" height="34" viewBox="0 0 100 100" aria-hidden="true"><polygon points="25,6 75,6 100,50 75,94 25,94 0,50" fill="#1f7a45" /><path d="M50 24c14 10 20 24 14 40-4 2-9 2-14-2-5 4-10 4-14 2-6-16 0-30 14-40z" fill="#e3efc6" /></svg>
-          <div><h1>CanopyWatch</h1><p>Forest cover change in Karnataka's forests</p></div>
+          <div><h1>CanopyWatch</h1><p>Forest cover change in Karnataka and Kerala</p></div>
         </div>
 
         {m.synthetic && <div className="demo"><b>Demo data.</b> These numbers are synthetic. Run the pipeline on real Hansen data before presenting.</div>}
