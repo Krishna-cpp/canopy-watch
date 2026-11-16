@@ -5,7 +5,7 @@ U Srikar Datta (Lead) · Krishna Kumar · Aman Varun Ekka
 
 > See where forests are vanishing, and where they will vanish next.
 
-CanopyWatch is a web dashboard for tracking forest-cover change across Karnataka's Western Ghats districts
+CanopyWatch is a web dashboard for tracking forest-cover change across the forested districts of Karnataka (the Western Ghats and Malnad, plus Chamarajanagar, Mysore, Belgaum and Dharwad)
 (Kodagu, Chikmagalur, Hassan, Dakshina Kannada, Udupi, Uttara Kannada, Shimoga). It turns 30 m satellite-derived
 forest data into something an officer, NGO or student can read in seconds.
 
@@ -41,20 +41,23 @@ Hansen GFC tiles ──► prepare_hansen.py ──► blocks.npz ──► buil
   Metrics are written to `hexes.json` and shown in the app.
 * **No backend**: everything heavy is pre-computed, so the deployed site is a fast static page that cannot fail during a demo.
 
-## Results (real data, 7 Western Ghats / Malnad districts)
+## Results (real data, 11 Karnataka districts)
 
-**What happened (Hansen GFC v1.12, 2000-2024).** The study area held about 2.03 M ha of forest in 2000 and lost about 56 K ha (2.8%) by 2024.
-Annual loss peaked in 2023. 1,423 of 6,999 hexagons are 99%-confidence hot spots (Getis-Ord Gi*) and hold 58% of all loss.
+**What happened (Hansen GFC v1.12, 2000-2024).** The study area held about 2.26 M ha of forest in 2000 and lost about 56.8 K ha (2.5%) by 2024.
+Annual loss peaked in 2023 (about 5,000 ha). 1,577 of 8,142 hexagons are 99%-confidence hot spots (Getis-Ord Gi*) and hold 61% of all loss.
+Dakshina Kannada lost the most forest (about 17,200 ha, 5.5% of its 2000 forest); Hassan lost the highest share (7.1%).
+The seven Western Ghats / Malnad districts account for 99% of all loss; the four added districts (Chamarajanagar, Mysore, Belgaum, Dharwad) lost very little.
 
 **Can the risk model predict it?** Trained on 2008-2020 and tested on 2021-2024, years it never saw:
 
 | | Risk model | "Same as last 3 years" baseline |
 |---|---|---|
-| ROC AUC | **0.877** | 0.839 |
-| Average precision | **0.448** (base rate 0.111, about 4x) | - |
+| ROC AUC | **0.891** | 0.855 |
+| Average precision | **0.447** (base rate 0.097, about 4.6x) | - |
 
-Test set: 26,678 hexagon-years (about 2,950 high-loss events). The model is a Random Forest on 7 spatial and temporal features;
+Test set: 30,514 hexagon-years (about 2,960 high-loss events). The model is a Random Forest on 7 spatial and temporal features;
 it ranks cells better than simple persistence, but it is a screening tool, not a prediction of exactly where clearing will happen.
+576 hexagons carry a modelled risk above 70% for 2025, most of them in Dakshina Kannada and Udupi.
 
 **Caveat.** Hansen "loss" is any stand-replacing tree-cover removal. In coffee, eucalyptus and acacia areas it includes plantation harvest and
 replanting, not only deforestation. Read the hot spots as "where canopy is being removed", then check with imagery (Satellite basemap).
@@ -68,7 +71,7 @@ npm install
 npm run dev          # http://localhost:5173
 npm run build        # production build in web/dist
 ```
-The repo ships with **real Hansen data** for the seven study districts (`web/public/data/`), so the app runs out of the box.
+The repo ships with **real Hansen data** for the eleven study districts (`web/public/data/`), so the app runs out of the box.
 (`pipeline/synthetic_blocks.py` can generate a clearly labelled synthetic dataset for testing; the app then shows a red DEMO DATA banner.)
 
 ### B. Rebuild the dataset yourself (Hansen 2000–2024)
@@ -77,7 +80,7 @@ python -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts\
 pip install -r requirements.txt
 
 python pipeline/prepare_hansen.py --quick    # Kodagu + Chikmagalur, a few minutes: good first test
-python pipeline/prepare_hansen.py            # full 7-district Western Ghats region (more data, longer)
+python pipeline/prepare_hansen.py            # full 11-district region (more data, longer)
 python pipeline/build_hexes.py               # writes web/public/data/hexes.json + districts.geojson
 cd web && npm run build
 ```
