@@ -5,11 +5,13 @@ export const BASE_YEAR = 2000; // tree cover baseline year in the Hansen data
 /** Load hexes.json and precompute geometry, neighbours and cumulative loss. */
 export async function loadData() {
   const base = import.meta.env.BASE_URL;
-  const res = await fetch(`${base}data/hexes.json`);
-  if (!res.ok) throw new Error(`Could not load data/hexes.json (HTTP ${res.status}). Run the pipeline first.`);
+  const india = new URLSearchParams(window.location.search).get("region") === "india";
+  const dir = india ? "data/india" : "data";
+  const res = await fetch(`${base}${dir}/hexes.json`);
+  if (!res.ok) throw new Error(`Could not load ${dir}/hexes.json (HTTP ${res.status}). Run the pipeline first.`);
   const d = await res.json();
   let districtsGeo = null;
-  try { districtsGeo = await (await fetch(`${base}data/districts.geojson`)).json(); } catch { /* optional */ }
+  try { districtsGeo = await (await fetch(`${base}${dir}/districts.geojson`)).json(); } catch { /* optional */ }
 
   const n = d.ids.length;
   const Y = d.meta.years.length;

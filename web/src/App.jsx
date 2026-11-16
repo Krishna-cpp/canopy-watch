@@ -68,7 +68,7 @@ export default function App() {
     for (let i = 0; i < n; i++) if (inD(i)) {
       if (z[i] >= 1.65 && loss[i] > 0.05) top.push(i);
       if (z[i] >= 2.58 && loss[i] > 0.05) { hot99++; hot99Loss += loss[i]; }
-      if (D.risk[i] >= 0.7 && fB[i] >= 15) { riskHigh++; riskByDist[D.district[i]]++; }
+      if (D.risk[i] >= 0.7 && fB[i] >= (D.meta.min_remaining_ha || 15)) { riskHigh++; riskByDist[D.district[i]]++; }
     }
     top.sort((x, y) => z[y] - z[x] || loss[y] - loss[x]);
     const topCells = top.slice(0, 10).map((i) => ({ i, z: z[i], loss: loss[i], district: D.districts[D.district[i]], lat: D.lat[i], lng: D.lng[i] }));
@@ -122,7 +122,7 @@ export default function App() {
   const TOUR = [
     { title: "See it", text: "Left is the forest in 2000. Right shows the same forest as the years pass. Drag the divider to compare." },
     { title: "Pinpoint it", text: "Getis-Ord Gi* tests which loss clusters are statistically significant. Red cells are 99% hot spots; they hold most of the loss." },
-    { title: "Explain one cell", text: "Every hexagon is about 520 ha. Click one to see its forest, its loss, and why it was flagged." },
+    { title: "Explain one cell", text: `Every hexagon is about ${Math.round(D?.meta?.cell_area_ha || 515).toLocaleString("en-US")} ha. Click one to see its forest, its loss, and why it was flagged.` },
     { title: "Predict it", text: "A Random Forest scores each cell for next year. Tested on years it never saw, it beats the simple baseline." },
   ];
   const goTour = (k) => {
@@ -175,7 +175,7 @@ export default function App() {
       <aside className="side">
         <div className="brand">
           <svg width="34" height="34" viewBox="0 0 100 100" aria-hidden="true"><polygon points="25,6 75,6 100,50 75,94 25,94 0,50" fill="#1f7a45" /><path d="M50 24c14 10 20 24 14 40-4 2-9 2-14-2-5 4-10 4-14 2-6-16 0-30 14-40z" fill="#e3efc6" /></svg>
-          <div><h1>CanopyWatch</h1><p>Forest cover change in Karnataka and Kerala</p></div>
+          <div><h1>CanopyWatch</h1><p>Forest cover change in {m.region_label || "Karnataka and Kerala"}</p></div>
         </div>
 
         {m.synthetic && <div className="demo"><b>Demo data.</b> These numbers are synthetic. Run the pipeline on real Hansen data before presenting.</div>}
