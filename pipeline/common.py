@@ -9,10 +9,12 @@ from shapely.ops import unary_union
 HERE = Path(__file__).resolve().parent
 DISTRICTS_FILE = HERE / "data" / "karnataka_districts.geojson"
 
-# Western Ghats / Malnad districts of Karnataka (the default study region)
+# Forested districts of Karnataka (the default study region): the Western Ghats / Malnad
+# districts plus Chamarajanagar, Mysore, Belgaum and Dharwad.
 DEFAULT_DISTRICTS = [
     "Kodagu", "Chikmagalur", "Hassan", "Dakshina Kannada",
     "Udupi", "Uttara Kannada", "Shimoga",
+    "Chamarajanagar", "Mysore", "Belgaum", "Dharwad",
 ]
 
 N_YEARS = 24            # Hansen 2024 v1.12: loss years 2001..2024
